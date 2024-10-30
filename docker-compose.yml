@@ -1,1 +1,41 @@
 
+services:
+  mysql-mycrud:
+    image: mysql:5.7
+    container_name: msql-container-mycrud
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=mypass
+      - MYSQL_ROOT_DATABASE=my_crud
+    volumes:
+      - ./dbmycrud:/var/lib/mysql
+      - ./docker-config/mysql/docker.cnf:/etc/mysql/conf.d/docker.cnf
+      - ./docker-config/mysql/init.sql:/data/application/init.sql
+    command: --init-file /data/application/init.sql
+    ports:
+      - "3306:3306"
+    expose:
+      - "3306"
+
+  api-mycrud:
+    image: node
+    container_name: node-container-mycrud
+    restart: always
+    volumes:
+      - ./backend:/application
+      - ./docker-config/node/start_application.sh:/start_application.sh
+    ports:
+      - "9001:9001"
+    expose:
+      - "9001"
+    entrypoint: /start_application.sh
+
+  nginx-mycrud:
+    image: nginx
+    container_name: nginx-container-mycrud
+    working_dir: /var/www/html
+    volumes:
+      - ./frontend:/var/www/html
+      - ./docker-config/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
